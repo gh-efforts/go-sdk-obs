@@ -60,7 +60,7 @@ func (l *Lister) StatBucket() (*obs.GetBucketMetadataOutput, error) {
 	return l.statBucket(context.Background())
 }
 
-// DeleteKeys 删除多个对象
-func (l *Lister) DeleteDirectory(prefix string) ([]*DeleteKeysError, error) {
-	return l.deleteDirectory(context.Background(), prefix)
+// DeleteDirectory 删除目录
+func (l *Lister) DeleteDirectory(dir string) ([]*DeleteKeysError, error) {
+	return l.deleteDirectory(context.Background(), dir)
 }

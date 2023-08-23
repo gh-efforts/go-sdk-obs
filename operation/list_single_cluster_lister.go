@@ -292,12 +292,12 @@ func (l *singleClusterLister) statBucket(ctx context.Context) (*obs.GetBucketMet
 	return l.client.GetBucketMetadata(&obs.GetBucketMetadataInput{Bucket: l.bucket})
 }
 
-func (l *singleClusterLister) deleteDirectory(ctx context.Context, prefix string) ([]*DeleteKeysError, error) {
+func (l *singleClusterLister) deleteDirectory(ctx context.Context, dir string) ([]*DeleteKeysError, error) {
 	if l.client == nil {
 		return nil, errors.New("obsclient is nil")
 	}
 
-	paths, err := l.listPrefix(ctx, prefix)
+	paths, err := l.listPrefix(ctx, dir)
 	if err != nil {
 		return nil, err
 	}
