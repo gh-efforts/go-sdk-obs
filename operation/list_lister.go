@@ -11,6 +11,7 @@ type clusterLister interface {
 	listPrefix(ctx context.Context, prefix string) ([]string, error)
 	listPrefixToChannel(ctx context.Context, prefix string, output chan<- string) error
 	deleteKeys(ctx context.Context, keys []string) ([]*DeleteKeysError, error)
+	deleteDirectory(ctx context.Context, prefix string) ([]*DeleteKeysError, error)
 	delete(ctx context.Context, key string) error
 	stat(ctx context.Context, key string) (*Entry, error)
 	statBucket(ctx context.Context) (*obs.GetBucketMetadataOutput, error)
@@ -57,4 +58,9 @@ func (l *Lister) Stat(key string) (*Entry, error) {
 // StatBucket 获取桶元数据
 func (l *Lister) StatBucket() (*obs.GetBucketMetadataOutput, error) {
 	return l.statBucket(context.Background())
+}
+
+// DeleteKeys 删除多个对象
+func (l *Lister) DeleteDirectory(prefix string) ([]*DeleteKeysError, error) {
+	return l.deleteDirectory(context.Background(), prefix)
 }
