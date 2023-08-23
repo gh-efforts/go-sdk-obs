@@ -1,6 +1,10 @@
 package operation
 
-import "context"
+import (
+	"context"
+
+	"github.com/huaweicloud/huaweicloud-sdk-go-obs/obs"
+)
 
 type clusterLister interface {
 	listStat(ctx context.Context, keys []string) ([]*FileStat, error)
@@ -8,6 +12,8 @@ type clusterLister interface {
 	listPrefixToChannel(ctx context.Context, prefix string, output chan<- string) error
 	deleteKeys(ctx context.Context, keys []string) ([]*DeleteKeysError, error)
 	delete(ctx context.Context, key string) error
+	stat(ctx context.Context, key string) (*Entry, error)
+	statBucket(ctx context.Context) (*obs.GetBucketMetadataOutput, error)
 }
 
 // Lister 列举器
@@ -41,4 +47,14 @@ func (l *Lister) DeleteKeys(keys []string) ([]*DeleteKeysError, error) {
 // Delete 删除指定对象
 func (l *Lister) Delete(key string) error {
 	return l.delete(context.Background(), key)
+}
+
+// Stat 获取对象元数据
+func (l *Lister) Stat(key string) (*Entry, error) {
+	return l.stat(context.Background(), key)
+}
+
+// StatBucket 获取桶元数据
+func (l *Lister) StatBucket() (*obs.GetBucketMetadataOutput, error) {
+	return l.statBucket(context.Background())
 }

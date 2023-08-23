@@ -45,7 +45,7 @@ type SingleKeyError struct {
 type Entry struct {
 	Hash     string
 	Fsize    int64
-	PutTime  int64
+	PutTime  time.Time
 	MimeType string
 	EndUser  string
 }

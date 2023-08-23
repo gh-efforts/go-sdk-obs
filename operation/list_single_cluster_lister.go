@@ -146,7 +146,6 @@ func (l *singleClusterLister) listStat(ctx context.Context, paths []string) ([]*
 		// index 是这批文件的起始位置
 		func(paths []string, index int) {
 			pool.Go(func(ctx context.Context) error {
-				// why 这里加func？
 				func() {
 					for j, key := range paths {
 						input := &obs.GetObjectMetadataInput{}
@@ -255,4 +254,35 @@ func (l *singleClusterLister) delete(ctx context.Context, key string) (err error
 	input.Key = key
 	_, err = l.client.DeleteObject(input)
 	return err
+}
+
+func (l *singleClusterLister) stat(ctx context.Context, key string) (*Entry, error) {
+
+	if l.client == nil {
+		return nil, errors.New("obsclient is nil")
+	}
+
+	input := &obs.GetObjectMetadataInput{}
+	input.Bucket = l.bucket
+	input.Key = key
+	output, err := l.client.GetObjectMetadata(input)
+
+	if err != nil {
+		return nil, err
+	}
+	return &Entry{
+		Hash:     output.ETag,
+		Fsize:    output.ContentLength,
+		PutTime:  output.LastModified,
+		MimeType: output.ContentType,
+		EndUser:  "",
+	}, nil
+}
+
+func (l *singleClusterLister) statBucket(ctx context.Context) (*obs.GetBucketMetadataOutput, error) {
+	if l.client == nil {
+		return nil, errors.New("obsclient is nil")
+	}
+
+	return l.client.GetBucketMetadata(&obs.GetBucketMetadataInput{Bucket: l.bucket})
 }
