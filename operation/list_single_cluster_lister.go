@@ -46,16 +46,21 @@ func newSingleClusterLister(c *Config) *singleClusterLister {
 func (l *singleClusterLister) listPrefixToChannel(ctx context.Context, prefix string, ch chan<- string) error {
 	marker := ""
 	for {
-		res, markerOut, err := func() (res []ListItem, markerOut string, err error) {
-			res, _, markerOut, err = l.list(ctx, prefix, "", marker, 1000)
+		res, commonPrefixes, markerOut, err := func() (res []ListItem, commonPrefixes []string, markerOut string, err error) {
+			res, commonPrefixes, markerOut, err = l.list(ctx, prefix, "", marker, 1000)
 			if err != nil && err != io.EOF {
-				return nil, "", err
+				return nil, nil, "", err
 			}
-			return res, markerOut, nil
+			return res, commonPrefixes, markerOut, nil
 		}()
 
 		if err != nil {
 			return err
+		}
+
+		// 递归遍历文件夹下面的文件夹
+		for _, commonPrefix := range commonPrefixes {
+			l.listPrefixToChannel(ctx, commonPrefix, ch)
 		}
 
 		for _, item := range res {
@@ -285,4 +290,16 @@ func (l *singleClusterLister) statBucket(ctx context.Context) (*obs.GetBucketMet
 	}
 
 	return l.client.GetBucketMetadata(&obs.GetBucketMetadataInput{Bucket: l.bucket})
+}
+
+func (l *singleClusterLister) deleteDirectory(ctx context.Context, dir string) ([]*DeleteKeysError, error) {
+	if l.client == nil {
+		return nil, errors.New("obsclient is nil")
+	}
+
+	paths, err := l.listPrefix(ctx, dir)
+	if err != nil {
+		return nil, err
+	}
+	return l.deleteKeys(ctx, paths)
 }
